@@ -2,76 +2,153 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Atlas Virtual 3D — Serie de Informes Técnicos de la OMS</title>
   <style>
+    :root {
+      /* Modo oscuro (default) */
+      --bg: #0a0e17;
+      --bg-panel: rgba(15, 22, 36, 0.94);
+      --bg-panel-solid: #0f1624;
+      --text: #e8eef7;
+      --text-muted: #9aadc4;
+      --accent: #5b9dff;
+      --accent-soft: rgba(91, 157, 255, 0.15);
+      --accent-border: rgba(91, 157, 255, 0.35);
+      --border: rgba(91, 157, 255, 0.2);
+      --card: rgba(91, 157, 255, 0.08);
+      --card-alt: rgba(255, 255, 255, 0.04);
+      --header-grad: linear-gradient(180deg, rgba(10,14,23,0.95) 0%, transparent 100%);
+      --shadow: 0 8px 32px rgba(0,0,0,0.45);
+      --green: #22c55e;
+      --yellow: #eab308;
+      --red: #ef4444;
+    }
+
+    body.light {
+      --bg: #f0f4f8;
+      --bg-panel: rgba(255, 255, 255, 0.92);
+      --bg-panel-solid: #ffffff;
+      --text: #1a2332;
+      --text-muted: #5a6b7d;
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.12);
+      --accent-border: rgba(37, 99, 235, 0.3);
+      --border: rgba(37, 99, 235, 0.18);
+      --card: rgba(37, 99, 235, 0.07);
+      --card-alt: rgba(0, 0, 0, 0.04);
+      --header-grad: linear-gradient(180deg, rgba(240,244,248,0.97) 0%, transparent 100%);
+      --shadow: 0 8px 32px rgba(0,0,0,0.12);
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: #0a0e17;
-      color: #e8eef7;
+      font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
       overflow: hidden;
       height: 100vh;
+      height: 100dvh;
+      transition: background 0.3s, color 0.3s;
     }
+
     #canvas-container {
       position: absolute;
       inset: 0;
       z-index: 1;
     }
-    canvas { display: block; width: 100%; height: 100%; }
+    canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 
-    /* Header */
+    /* ========== HEADER ========== */
     header {
       position: absolute;
       top: 0; left: 0; right: 0;
-      z-index: 10;
-      padding: 16px 24px;
-      background: linear-gradient(180deg, rgba(10,14,23,0.95) 0%, transparent 100%);
+      z-index: 20;
+      padding: 12px 16px;
+      background: var(--header-grad);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 10px;
       pointer-events: none;
     }
     header h1 {
-      font-size: 1.35rem;
+      font-size: clamp(0.95rem, 3.5vw, 1.3rem);
       font-weight: 600;
       letter-spacing: -0.02em;
-      color: #fff;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     header h1 span {
-      color: #5b9dff;
+      color: var(--accent);
       font-weight: 400;
     }
-    .badge {
-      background: rgba(91,157,255,0.15);
-      border: 1px solid rgba(91,157,255,0.35);
-      color: #8bb8ff;
-      font-size: 0.7rem;
-      padding: 4px 10px;
-      border-radius: 20px;
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       pointer-events: auto;
+      flex-shrink: 0;
     }
+    .badge {
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-border);
+      color: var(--accent);
+      font-size: 0.65rem;
+      padding: 4px 9px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .theme-btn, .menu-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg-panel);
+      color: var(--text);
+      font-size: 1.15rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, transform 0.15s;
+      backdrop-filter: blur(8px);
+    }
+    .theme-btn:hover, .menu-btn:hover {
+      background: var(--accent-soft);
+    }
+    .theme-btn:active, .menu-btn:active {
+      transform: scale(0.94);
+    }
+    .menu-btn { display: none; }
 
-    /* Sidebar izquierda - controles */
+    /* ========== CONTROLES (sidebar) ========== */
     #controls {
       position: absolute;
-      top: 80px;
-      left: 20px;
-      z-index: 10;
-      width: 280px;
-      background: rgba(15, 22, 36, 0.92);
-      border: 1px solid rgba(91,157,255,0.2);
+      top: 70px;
+      left: 16px;
+      z-index: 15;
+      width: 270px;
+      max-height: calc(100vh - 100px);
+      max-height: calc(100dvh - 100px);
+      overflow-y: auto;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 18px;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      padding: 16px;
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+      transition: transform 0.3s ease, opacity 0.3s, background 0.3s;
     }
     #controls h2 {
-      font-size: 0.85rem;
+      font-size: 0.78rem;
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      color: #8bb8ff;
-      margin-bottom: 14px;
+      color: var(--accent);
+      margin-bottom: 12px;
     }
     .category-btn {
       display: block;
@@ -79,182 +156,277 @@
       text-align: left;
       background: transparent;
       border: 1px solid transparent;
-      color: #c5d4ea;
-      padding: 10px 12px;
-      margin-bottom: 6px;
-      border-radius: 8px;
+      color: var(--text-muted);
+      padding: 11px 12px;
+      margin-bottom: 5px;
+      border-radius: 9px;
       cursor: pointer;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
     }
     .category-btn:hover {
-      background: rgba(91,157,255,0.12);
-      border-color: rgba(91,157,255,0.3);
+      background: var(--accent-soft);
+      border-color: var(--border);
+      color: var(--text);
     }
     .category-btn.active {
-      background: rgba(91,157,255,0.22);
-      border-color: #5b9dff;
-      color: #fff;
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--text);
+      font-weight: 500;
     }
     .legend {
-      margin-top: 18px;
-      padding-top: 14px;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      font-size: 0.78rem;
-      color: #9aadc4;
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--text-muted);
     }
     .legend-item {
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
     .dot {
       width: 10px; height: 10px;
       border-radius: 50%;
+      flex-shrink: 0;
     }
 
-    /* Panel derecho - info */
+    /* ========== PANEL INFO ========== */
     #info-panel {
       position: absolute;
-      top: 80px;
-      right: 20px;
-      z-index: 10;
-      width: 340px;
-      max-height: calc(100vh - 120px);
+      top: 70px;
+      right: 16px;
+      z-index: 15;
+      width: 320px;
+      max-height: calc(100vh - 100px);
+      max-height: calc(100dvh - 100px);
       overflow-y: auto;
-      background: rgba(15, 22, 36, 0.94);
-      border: 1px solid rgba(91,157,255,0.2);
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 20px;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      padding: 18px;
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
       display: none;
+      transition: background 0.3s;
     }
     #info-panel.visible { display: block; }
     #info-panel h3 {
-      font-size: 1.25rem;
-      margin-bottom: 4px;
-      color: #fff;
+      font-size: 1.2rem;
+      margin-bottom: 2px;
+      color: var(--text);
+      padding-right: 28px;
     }
     #info-panel .region {
-      font-size: 0.8rem;
-      color: #8bb8ff;
-      margin-bottom: 16px;
+      font-size: 0.78rem;
+      color: var(--accent);
+      margin-bottom: 14px;
     }
     .metric {
-      background: rgba(91,157,255,0.08);
+      background: var(--card);
       border-radius: 10px;
-      padding: 12px 14px;
-      margin-bottom: 10px;
+      padding: 11px 13px;
+      margin-bottom: 8px;
     }
     .metric-label {
-      font-size: 0.75rem;
-      color: #9aadc4;
+      font-size: 0.72rem;
+      color: var(--text-muted);
       margin-bottom: 2px;
     }
     .metric-value {
-      font-size: 1.35rem;
+      font-size: 1.25rem;
       font-weight: 600;
-      color: #fff;
+      color: var(--text);
     }
     .trs-section {
-      margin-top: 18px;
-      padding-top: 14px;
-      border-top: 1px solid rgba(255,255,255,0.08);
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
     }
     .trs-section h4 {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: #8bb8ff;
+      color: var(--accent);
       margin-bottom: 10px;
     }
     .trs-item {
-      background: rgba(255,255,255,0.04);
+      background: var(--card-alt);
       border-radius: 8px;
       padding: 10px 12px;
-      margin-bottom: 8px;
-      font-size: 0.82rem;
+      margin-bottom: 7px;
+      font-size: 0.8rem;
       line-height: 1.4;
     }
     .trs-item strong {
-      color: #5b9dff;
+      color: var(--accent);
       display: block;
       margin-bottom: 2px;
     }
     .trs-item a {
-      color: #8bb8ff;
+      color: var(--accent);
       text-decoration: none;
-      font-size: 0.75rem;
+      font-size: 0.73rem;
     }
     .trs-item a:hover { text-decoration: underline; }
     .close-btn {
       position: absolute;
-      top: 12px; right: 14px;
+      top: 12px; right: 12px;
       background: none;
       border: none;
-      color: #9aadc4;
-      font-size: 1.4rem;
+      color: var(--text-muted);
+      font-size: 1.5rem;
       cursor: pointer;
       line-height: 1;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
     }
-    .close-btn:hover { color: #fff; }
+    .close-btn:hover {
+      color: var(--text);
+      background: var(--card);
+    }
 
-    /* Footer */
+    /* ========== FOOTER & HINT ========== */
     footer {
       position: absolute;
-      bottom: 16px;
+      bottom: 12px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 10;
-      font-size: 0.72rem;
-      color: #6b7f99;
+      font-size: 0.68rem;
+      color: var(--text-muted);
       text-align: center;
       pointer-events: none;
+      max-width: 90%;
+      line-height: 1.4;
     }
     footer a {
-      color: #8bb8ff;
+      color: var(--accent);
       text-decoration: none;
       pointer-events: auto;
     }
+    #hint {
+      position: absolute;
+      bottom: 48px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      background: var(--bg-panel);
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      pointer-events: none;
+      transition: opacity 0.5s;
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
 
-    /* Loading */
+    /* ========== LOADING ========== */
     #loading {
       position: absolute;
       inset: 0;
-      z-index: 20;
-      background: #0a0e17;
+      z-index: 30;
+      background: var(--bg);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 16px;
+      gap: 14px;
+      transition: opacity 0.4s;
     }
-    #loading.hidden { display: none; }
+    #loading.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
     .spinner {
-      width: 40px; height: 40px;
-      border: 3px solid rgba(91,157,255,0.2);
-      border-top-color: #5b9dff;
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
       border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+      animation: spin 0.75s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Instrucciones */
-    #hint {
-      position: absolute;
-      bottom: 50px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 10;
-      background: rgba(15,22,36,0.85);
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      color: #9aadc4;
-      pointer-events: none;
-      transition: opacity 0.5s;
+    /* ========== MÓVIL ========== */
+    @media (max-width: 768px) {
+      header {
+        padding: 10px 12px;
+      }
+      .badge { display: none; }
+      .menu-btn { display: flex; }
+
+      #controls {
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-height: 48vh;
+        border-radius: 18px 18px 0 0;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        transform: translateY(110%);
+        padding: 14px 16px 24px;
+        z-index: 25;
+      }
+      #controls.open {
+        transform: translateY(0);
+      }
+      /* Handle para arrastrar */
+      #controls::before {
+        content: '';
+        display: block;
+        width: 40px;
+        height: 4px;
+        background: var(--text-muted);
+        opacity: 0.4;
+        border-radius: 2px;
+        margin: 0 auto 12px;
+      }
+
+      #info-panel {
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-height: 62vh;
+        border-radius: 18px 18px 0 0;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        z-index: 26;
+      }
+
+      footer {
+        bottom: 8px;
+        font-size: 0.62rem;
+      }
+      #hint {
+        bottom: 36px;
+        font-size: 0.7rem;
+        padding: 6px 12px;
+      }
+
+      .category-btn {
+        padding: 13px 14px;
+        font-size: 0.92rem;
+      }
+    }
+
+    @media (max-width: 400px) {
+      header h1 { font-size: 0.9rem; }
+      header h1 span { display: none; }
     }
   </style>
 </head>
@@ -266,7 +438,11 @@
 
   <header>
     <h1>Atlas Virtual 3D <span>· Serie de Informes Técnicos OMS</span></h1>
-    <div class="badge">Datos reales · OMS / GHO</div>
+    <div class="header-actions">
+      <div class="badge">Datos reales · OMS / GHO</div>
+      <button class="theme-btn" id="theme-btn" title="Cambiar modo claro/oscuro" aria-label="Cambiar tema">🌙</button>
+      <button class="menu-btn" id="menu-btn" title="Categorías" aria-label="Abrir categorías">☰</button>
+    </div>
   </header>
 
   <div id="controls">
@@ -276,15 +452,15 @@
     <button class="category-btn" data-cat="cobertura">Cobertura sanitaria universal</button>
     <button class="category-btn" data-cat="mortalidad">Mortalidad infantil</button>
     <div class="legend">
-      <div class="legend-item"><div class="dot" style="background:#22c55e"></div> Alto / Favorable</div>
-      <div class="legend-item"><div class="dot" style="background:#eab308"></div> Medio</div>
-      <div class="legend-item"><div class="dot" style="background:#ef4444"></div> Bajo / Crítico</div>
-      <div style="margin-top:10px;font-size:0.72rem;opacity:0.7">Haz clic en un marcador para ver detalles y los TRS relacionados</div>
+      <div class="legend-item"><div class="dot" style="background:var(--green)"></div> Alto / Favorable</div>
+      <div class="legend-item"><div class="dot" style="background:var(--yellow)"></div> Medio</div>
+      <div class="legend-item"><div class="dot" style="background:var(--red)"></div> Bajo / Crítico</div>
+      <div style="margin-top:10px;font-size:0.7rem;opacity:0.75">Toca un marcador para ver detalles y los TRS relacionados</div>
     </div>
   </div>
 
   <div id="info-panel">
-    <button class="close-btn" id="close-panel">×</button>
+    <button class="close-btn" id="close-panel" aria-label="Cerrar">×</button>
     <h3 id="country-name">—</h3>
     <div class="region" id="country-region">—</div>
     <div id="metrics"></div>
@@ -295,7 +471,7 @@
   </div>
 
   <div id="canvas-container"></div>
-  <div id="hint">Arrastra para rotar · Rueda para zoom · Clic en puntos para explorar</div>
+  <div id="hint">Arrastra para rotar · Pellizca para zoom · Toca puntos</div>
 
   <footer>
     Datos basados en Global Health Observatory (OMS) y Serie de Informes Técnicos (TRS).<br>
@@ -316,87 +492,42 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-    // ========== DATOS REALES (selección representativa basada en GHO / World Health Statistics) ==========
-    // Fuentes: WHO Global Health Observatory, World Health Statistics recientes.
-    // Valores aproximados / más recientes disponibles públicamente (2022-2025).
-
+    // ========== DATOS ==========
     const countries = [
-      // América
-      { name: "México", region: "América", lat: 23.6, lon: -102.5,
-        vacunas: 86, farmaceuticos: 72, cobertura: 74, mortalidad: 12.5 },
-      { name: "Brasil", region: "América", lat: -14.2, lon: -51.9,
-        vacunas: 80, farmaceuticos: 68, cobertura: 76, mortalidad: 13.1 },
-      { name: "Estados Unidos", region: "América", lat: 37.1, lon: -95.7,
-        vacunas: 92, farmaceuticos: 88, cobertura: 84, mortalidad: 5.4 },
-      { name: "Argentina", region: "América", lat: -38.4, lon: -63.6,
-        vacunas: 85, farmaceuticos: 75, cobertura: 78, mortalidad: 9.2 },
-      { name: "Colombia", region: "América", lat: 4.6, lon: -74.3,
-        vacunas: 83, farmaceuticos: 65, cobertura: 77, mortalidad: 12.0 },
-      { name: "Perú", region: "América", lat: -9.2, lon: -75.0,
-        vacunas: 78, farmaceuticos: 62, cobertura: 72, mortalidad: 14.5 },
-      { name: "Chile", region: "América", lat: -35.7, lon: -71.5,
-        vacunas: 90, farmaceuticos: 82, cobertura: 81, mortalidad: 6.8 },
-
-      // Europa
-      { name: "España", region: "Europa", lat: 40.5, lon: -3.7,
-        vacunas: 95, farmaceuticos: 90, cobertura: 87, mortalidad: 2.7 },
-      { name: "Alemania", region: "Europa", lat: 51.2, lon: 10.4,
-        vacunas: 94, farmaceuticos: 92, cobertura: 88, mortalidad: 3.2 },
-      { name: "Francia", region: "Europa", lat: 46.2, lon: 2.2,
-        vacunas: 93, farmaceuticos: 91, cobertura: 86, mortalidad: 3.5 },
-      { name: "Reino Unido", region: "Europa", lat: 55.4, lon: -3.4,
-        vacunas: 92, farmaceuticos: 89, cobertura: 85, mortalidad: 3.9 },
-      { name: "Italia", region: "Europa", lat: 41.9, lon: 12.6,
-        vacunas: 91, farmaceuticos: 88, cobertura: 84, mortalidad: 2.9 },
-      { name: "Rusia", region: "Europa", lat: 61.5, lon: 105.3,
-        vacunas: 88, farmaceuticos: 70, cobertura: 75, mortalidad: 5.1 },
-
-      // África
-      { name: "Nigeria", region: "África", lat: 9.1, lon: 8.7,
-        vacunas: 57, farmaceuticos: 38, cobertura: 42, mortalidad: 72.2 },
-      { name: "Etiopía", region: "África", lat: 9.1, lon: 40.5,
-        vacunas: 62, farmaceuticos: 35, cobertura: 39, mortalidad: 46.0 },
-      { name: "Kenia", region: "África", lat: -0.02, lon: 37.9,
-        vacunas: 78, farmaceuticos: 48, cobertura: 53, mortalidad: 37.1 },
-      { name: "Sudáfrica", region: "África", lat: -30.6, lon: 22.9,
-        vacunas: 75, farmaceuticos: 58, cobertura: 67, mortalidad: 28.5 },
-      { name: "Egipto", region: "África", lat: 26.8, lon: 30.8,
-        vacunas: 89, farmaceuticos: 65, cobertura: 68, mortalidad: 17.8 },
-      { name: "Ghana", region: "África", lat: 7.9, lon: -1.0,
-        vacunas: 85, farmaceuticos: 45, cobertura: 48, mortalidad: 34.0 },
-
-      // Asia
-      { name: "India", region: "Asia", lat: 20.6, lon: 78.9,
-        vacunas: 84, farmaceuticos: 55, cobertura: 58, mortalidad: 27.7 },
-      { name: "China", region: "Asia", lat: 35.9, lon: 104.2,
-        vacunas: 96, farmaceuticos: 78, cobertura: 82, mortalidad: 6.5 },
-      { name: "Japón", region: "Asia", lat: 36.2, lon: 138.3,
-        vacunas: 97, farmaceuticos: 94, cobertura: 89, mortalidad: 1.9 },
-      { name: "Indonesia", region: "Asia", lat: -0.8, lon: 113.9,
-        vacunas: 72, farmaceuticos: 52, cobertura: 57, mortalidad: 20.1 },
-      { name: "Pakistán", region: "Asia", lat: 30.4, lon: 69.3,
-        vacunas: 75, farmaceuticos: 42, cobertura: 48, mortalidad: 55.7 },
-      { name: "Bangladesh", region: "Asia", lat: 23.7, lon: 90.4,
-        vacunas: 88, farmaceuticos: 48, cobertura: 54, mortalidad: 25.6 },
-      { name: "Filipinas", region: "Asia", lat: 12.9, lon: 121.8,
-        vacunas: 70, farmaceuticos: 50, cobertura: 55, mortalidad: 24.0 },
-      { name: "Tailandia", region: "Asia", lat: 15.9, lon: 100.9,
-        vacunas: 91, farmaceuticos: 72, cobertura: 80, mortalidad: 7.8 },
-      { name: "Vietnam", region: "Asia", lat: 14.1, lon: 108.3,
-        vacunas: 89, farmaceuticos: 60, cobertura: 70, mortalidad: 16.3 },
-
-      // Oceanía & Medio Oriente
-      { name: "Australia", region: "Oceanía", lat: -25.3, lon: 133.8,
-        vacunas: 94, farmaceuticos: 91, cobertura: 87, mortalidad: 3.3 },
-      { name: "Arabia Saudita", region: "Medio Oriente", lat: 23.9, lon: 45.1,
-        vacunas: 93, farmaceuticos: 80, cobertura: 78, mortalidad: 6.2 },
-      { name: "Turquía", region: "Europa/Asia", lat: 38.9, lon: 35.2,
-        vacunas: 94, farmaceuticos: 78, cobertura: 79, mortalidad: 9.1 },
-      { name: "Irán", region: "Medio Oriente", lat: 32.4, lon: 53.7,
-        vacunas: 92, farmaceuticos: 70, cobertura: 72, mortalidad: 12.4 }
+      { name: "México", region: "América", lat: 23.6, lon: -102.5, vacunas: 86, farmaceuticos: 72, cobertura: 74, mortalidad: 12.5 },
+      { name: "Brasil", region: "América", lat: -14.2, lon: -51.9, vacunas: 80, farmaceuticos: 68, cobertura: 76, mortalidad: 13.1 },
+      { name: "Estados Unidos", region: "América", lat: 37.1, lon: -95.7, vacunas: 92, farmaceuticos: 88, cobertura: 84, mortalidad: 5.4 },
+      { name: "Argentina", region: "América", lat: -38.4, lon: -63.6, vacunas: 85, farmaceuticos: 75, cobertura: 78, mortalidad: 9.2 },
+      { name: "Colombia", region: "América", lat: 4.6, lon: -74.3, vacunas: 83, farmaceuticos: 65, cobertura: 77, mortalidad: 12.0 },
+      { name: "Perú", region: "América", lat: -9.2, lon: -75.0, vacunas: 78, farmaceuticos: 62, cobertura: 72, mortalidad: 14.5 },
+      { name: "Chile", region: "América", lat: -35.7, lon: -71.5, vacunas: 90, farmaceuticos: 82, cobertura: 81, mortalidad: 6.8 },
+      { name: "España", region: "Europa", lat: 40.5, lon: -3.7, vacunas: 95, farmaceuticos: 90, cobertura: 87, mortalidad: 2.7 },
+      { name: "Alemania", region: "Europa", lat: 51.2, lon: 10.4, vacunas: 94, farmaceuticos: 92, cobertura: 88, mortalidad: 3.2 },
+      { name: "Francia", region: "Europa", lat: 46.2, lon: 2.2, vacunas: 93, farmaceuticos: 91, cobertura: 86, mortalidad: 3.5 },
+      { name: "Reino Unido", region: "Europa", lat: 55.4, lon: -3.4, vacunas: 92, farmaceuticos: 89, cobertura: 85, mortalidad: 3.9 },
+      { name: "Italia", region: "Europa", lat: 41.9, lon: 12.6, vacunas: 91, farmaceuticos: 88, cobertura: 84, mortalidad: 2.9 },
+      { name: "Rusia", region: "Europa", lat: 61.5, lon: 105.3, vacunas: 88, farmaceuticos: 70, cobertura: 75, mortalidad: 5.1 },
+      { name: "Nigeria", region: "África", lat: 9.1, lon: 8.7, vacunas: 57, farmaceuticos: 38, cobertura: 42, mortalidad: 72.2 },
+      { name: "Etiopía", region: "África", lat: 9.1, lon: 40.5, vacunas: 62, farmaceuticos: 35, cobertura: 39, mortalidad: 46.0 },
+      { name: "Kenia", region: "África", lat: -0.02, lon: 37.9, vacunas: 78, farmaceuticos: 48, cobertura: 53, mortalidad: 37.1 },
+      { name: "Sudáfrica", region: "África", lat: -30.6, lon: 22.9, vacunas: 75, farmaceuticos: 58, cobertura: 67, mortalidad: 28.5 },
+      { name: "Egipto", region: "África", lat: 26.8, lon: 30.8, vacunas: 89, farmaceuticos: 65, cobertura: 68, mortalidad: 17.8 },
+      { name: "Ghana", region: "África", lat: 7.9, lon: -1.0, vacunas: 85, farmaceuticos: 45, cobertura: 48, mortalidad: 34.0 },
+      { name: "India", region: "Asia", lat: 20.6, lon: 78.9, vacunas: 84, farmaceuticos: 55, cobertura: 58, mortalidad: 27.7 },
+      { name: "China", region: "Asia", lat: 35.9, lon: 104.2, vacunas: 96, farmaceuticos: 78, cobertura: 82, mortalidad: 6.5 },
+      { name: "Japón", region: "Asia", lat: 36.2, lon: 138.3, vacunas: 97, farmaceuticos: 94, cobertura: 89, mortalidad: 1.9 },
+      { name: "Indonesia", region: "Asia", lat: -0.8, lon: 113.9, vacunas: 72, farmaceuticos: 52, cobertura: 57, mortalidad: 20.1 },
+      { name: "Pakistán", region: "Asia", lat: 30.4, lon: 69.3, vacunas: 75, farmaceuticos: 42, cobertura: 48, mortalidad: 55.7 },
+      { name: "Bangladesh", region: "Asia", lat: 23.7, lon: 90.4, vacunas: 88, farmaceuticos: 48, cobertura: 54, mortalidad: 25.6 },
+      { name: "Filipinas", region: "Asia", lat: 12.9, lon: 121.8, vacunas: 70, farmaceuticos: 50, cobertura: 55, mortalidad: 24.0 },
+      { name: "Tailandia", region: "Asia", lat: 15.9, lon: 100.9, vacunas: 91, farmaceuticos: 72, cobertura: 80, mortalidad: 7.8 },
+      { name: "Vietnam", region: "Asia", lat: 14.1, lon: 108.3, vacunas: 89, farmaceuticos: 60, cobertura: 70, mortalidad: 16.3 },
+      { name: "Australia", region: "Oceanía", lat: -25.3, lon: 133.8, vacunas: 94, farmaceuticos: 91, cobertura: 87, mortalidad: 3.3 },
+      { name: "Arabia Saudita", region: "Medio Oriente", lat: 23.9, lon: 45.1, vacunas: 93, farmaceuticos: 80, cobertura: 78, mortalidad: 6.2 },
+      { name: "Turquía", region: "Europa/Asia", lat: 38.9, lon: 35.2, vacunas: 94, farmaceuticos: 78, cobertura: 79, mortalidad: 9.1 },
+      { name: "Irán", region: "Medio Oriente", lat: 32.4, lon: 53.7, vacunas: 92, farmaceuticos: 70, cobertura: 72, mortalidad: 12.4 }
     ];
 
-    // Informes TRS reales relevantes por categoría (en español)
     const trsByCategory = {
       vacunas: [
         { code: "TRS 1030", title: "Comité de Expertos en Normalización Biológica – 72º y 73º informes", url: "https://www.who.int/publications/i/item/9789240024373" },
@@ -429,10 +560,47 @@
       mortalidad: "Mortalidad de menores de 5 años (por 1000 nacidos vivos)"
     };
 
-    // ========== THREE.JS SETUP ==========
+    // ========== TEMA CLARO / OSCURO ==========
+    const themeBtn = document.getElementById('theme-btn');
+    const savedTheme = localStorage.getItem('atlas-theme');
+    if (savedTheme === 'light') {
+      document.body.classList.add('light');
+      themeBtn.textContent = '☀️';
+    }
+
+    themeBtn.addEventListener('click', () => {
+      document.body.classList.toggle('light');
+      const isLight = document.body.classList.contains('light');
+      themeBtn.textContent = isLight ? '☀️' : '🌙';
+      localStorage.setItem('atlas-theme', isLight ? 'light' : 'dark');
+    });
+
+    // ========== MENÚ MÓVIL ==========
+    const controlsEl = document.getElementById('controls');
+    const menuBtn = document.getElementById('menu-btn');
+    let menuOpen = false;
+
+    menuBtn.addEventListener('click', () => {
+      menuOpen = !menuOpen;
+      controlsEl.classList.toggle('open', menuOpen);
+      menuBtn.textContent = menuOpen ? '✕' : '☰';
+    });
+
+    // Cerrar menú al elegir categoría en móvil
+    document.querySelectorAll('.category-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          menuOpen = false;
+          controlsEl.classList.remove('open');
+          menuBtn.textContent = '☰';
+        }
+      });
+    });
+
+    // ========== THREE.JS ==========
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0e17);
+    scene.background = null; // usamos el body
 
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 0.8, 3.2);
@@ -444,143 +612,116 @@
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
+    controls.dampingFactor = 0.06;
     controls.minDistance = 1.8;
     controls.maxDistance = 6;
     controls.autoRotate = true;
-    controls.autoRotateSpeed = 0.4;
+    controls.autoRotateSpeed = 0.35;
+    controls.enablePan = false;
+    // Mejor experiencia táctil
+    controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
 
-    // Estrellas de fondo
+    // Estrellas
     const starsGeo = new THREE.BufferGeometry();
-    const starCount = 2500;
+    const starCount = 1800;
     const positions = new Float32Array(starCount * 3);
-    for (let i = 0; i < starCount * 3; i++) {
-      positions[i] = (Math.random() - 0.5) * 80;
-    }
+    for (let i = 0; i < starCount * 3; i++) positions[i] = (Math.random() - 0.5) * 70;
     starsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    const stars = new THREE.Points(starsGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.04, sizeAttenuation: true }));
+    const starsMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.035, sizeAttenuation: true, transparent: true, opacity: 0.8 });
+    const stars = new THREE.Points(starsGeo, starsMat);
     scene.add(stars);
 
     // Tierra
     const earthGroup = new THREE.Group();
     scene.add(earthGroup);
-
     const radius = 1;
-    const earthGeo = new THREE.SphereGeometry(radius, 64, 64);
 
-    // Textura procedural simple + atmósfera
-    const canvas = document.createElement('canvas');
-    canvas.width = 1024; canvas.height = 512;
-    const ctx = canvas.getContext('2d');
-    // Océanos
+    const canvasTex = document.createElement('canvas');
+    canvasTex.width = 1024; canvasTex.height = 512;
+    const ctx = canvasTex.getContext('2d');
     ctx.fillStyle = '#1a3a5c';
     ctx.fillRect(0, 0, 1024, 512);
-    // Continentes simplificados (aproximación)
     ctx.fillStyle = '#2d5a3d';
-    // América
     ctx.beginPath(); ctx.ellipse(220, 260, 90, 160, 0.1, 0, Math.PI*2); ctx.fill();
     ctx.beginPath(); ctx.ellipse(250, 380, 50, 70, 0, 0, Math.PI*2); ctx.fill();
-    // Europa + África
     ctx.beginPath(); ctx.ellipse(520, 200, 50, 40, 0, 0, Math.PI*2); ctx.fill();
     ctx.beginPath(); ctx.ellipse(540, 320, 70, 110, 0, 0, Math.PI*2); ctx.fill();
-    // Asia
     ctx.beginPath(); ctx.ellipse(700, 220, 140, 90, 0, 0, Math.PI*2); ctx.fill();
-    // Australia
     ctx.beginPath(); ctx.ellipse(820, 380, 50, 35, 0, 0, Math.PI*2); ctx.fill();
 
-    const earthTex = new THREE.CanvasTexture(canvas);
-    const earthMat = new THREE.MeshPhongMaterial({
-      map: earthTex,
-      shininess: 15,
-      specular: new THREE.Color(0x222222)
-    });
-    const earth = new THREE.Mesh(earthGeo, earthMat);
+    const earthTex = new THREE.CanvasTexture(canvasTex);
+    const earthMat = new THREE.MeshPhongMaterial({ map: earthTex, shininess: 12, specular: new THREE.Color(0x222222) });
+    const earth = new THREE.Mesh(new THREE.SphereGeometry(radius, 64, 64), earthMat);
     earthGroup.add(earth);
 
-    // Atmósfera
-    const atmoGeo = new THREE.SphereGeometry(radius * 1.025, 64, 64);
-    const atmoMat = new THREE.MeshBasicMaterial({
-      color: 0x5b9dff,
-      transparent: true,
-      opacity: 0.12,
-      side: THREE.BackSide
-    });
-    earthGroup.add(new THREE.Mesh(atmoGeo, atmoMat));
+    const atmo = new THREE.Mesh(
+      new THREE.SphereGeometry(radius * 1.025, 64, 64),
+      new THREE.MeshBasicMaterial({ color: 0x5b9dff, transparent: true, opacity: 0.11, side: THREE.BackSide })
+    );
+    earthGroup.add(atmo);
 
-    // Luz
-    const ambient = new THREE.AmbientLight(0x404860, 1.2);
-    scene.add(ambient);
-    const sun = new THREE.DirectionalLight(0xffffff, 1.4);
+    scene.add(new THREE.AmbientLight(0x404860, 1.15));
+    const sun = new THREE.DirectionalLight(0xffffff, 1.35);
     sun.position.set(5, 3, 5);
     scene.add(sun);
 
-    // ========== MARCADORES ==========
+    // Marcadores
     const markersGroup = new THREE.Group();
     earthGroup.add(markersGroup);
-
     let currentCategory = 'vacunas';
     let markerMeshes = [];
 
     function latLonToVector3(lat, lon, r = radius) {
       const phi = (90 - lat) * (Math.PI / 180);
       const theta = (lon + 180) * (Math.PI / 180);
-      const x = -r * Math.sin(phi) * Math.cos(theta);
-      const y = r * Math.cos(phi);
-      const z = r * Math.sin(phi) * Math.sin(theta);
-      return new THREE.Vector3(x, y, z);
+      return new THREE.Vector3(
+        -r * Math.sin(phi) * Math.cos(theta),
+        r * Math.cos(phi),
+        r * Math.sin(phi) * Math.sin(theta)
+      );
     }
 
     function getColor(value, cat) {
-      // Para mortalidad: valores altos = malo (rojo)
       if (cat === 'mortalidad') {
         if (value < 10) return 0x22c55e;
         if (value < 30) return 0xeab308;
         return 0xef4444;
       }
-      // Resto: valores altos = bueno
       if (value >= 85) return 0x22c55e;
       if (value >= 60) return 0xeab308;
       return 0xef4444;
     }
 
     function createMarkers(cat) {
-      // Limpiar anteriores
-      while (markersGroup.children.length) {
-        markersGroup.remove(markersGroup.children[0]);
-      }
+      while (markersGroup.children.length) markersGroup.remove(markersGroup.children[0]);
       markerMeshes = [];
-
       countries.forEach(c => {
         const value = c[cat];
         const color = getColor(value, cat);
         const pos = latLonToVector3(c.lat, c.lon, radius + 0.02);
-
-        // Esfera del marcador
         const size = cat === 'mortalidad'
           ? 0.018 + Math.min(value / 200, 0.04)
           : 0.015 + (value / 100) * 0.035;
 
-        const geo = new THREE.SphereGeometry(size, 16, 16);
-        const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.9 });
-        const mesh = new THREE.Mesh(geo, mat);
+        const mesh = new THREE.Mesh(
+          new THREE.SphereGeometry(size, 14, 14),
+          new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.92 })
+        );
         mesh.position.copy(pos);
         mesh.userData = { country: c, category: cat };
         markersGroup.add(mesh);
         markerMeshes.push(mesh);
 
-        // Línea / tallo
-        const lineGeo = new THREE.BufferGeometry().setFromPoints([
-          latLonToVector3(c.lat, c.lon, radius),
-          pos
-        ]);
-        const line = new THREE.Line(lineGeo, new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.5 }));
+        const line = new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints([latLonToVector3(c.lat, c.lon, radius), pos]),
+          new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.45 })
+        );
         markersGroup.add(line);
       });
     }
-
     createMarkers(currentCategory);
 
-    // ========== INTERACCIÓN ==========
+    // Interacción
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     const infoPanel = document.getElementById('info-panel');
@@ -588,9 +729,7 @@
     function showCountry(c, cat) {
       document.getElementById('country-name').textContent = c.name;
       document.getElementById('country-region').textContent = c.region;
-
-      const metricsEl = document.getElementById('metrics');
-      metricsEl.innerHTML = `
+      document.getElementById('metrics').innerHTML = `
         <div class="metric">
           <div class="metric-label">${categoryLabels[cat]}</div>
           <div class="metric-value">${c[cat]}${cat === 'mortalidad' ? '' : '%'}</div>
@@ -608,18 +747,21 @@
           <div class="metric-value">${c.mortalidad}</div>
         </div>
       `;
-
-      const trsList = document.getElementById('trs-list');
-      trsList.innerHTML = trsByCategory[cat].map(t => `
+      document.getElementById('trs-list').innerHTML = trsByCategory[cat].map(t => `
         <div class="trs-item">
           <strong>${t.code}</strong>
           ${t.title}<br>
           <a href="${t.url}" target="_blank" rel="noopener">Ver en who.int →</a>
         </div>
       `).join('');
-
       infoPanel.classList.add('visible');
       controls.autoRotate = false;
+      // Cerrar menú en móvil si está abierto
+      if (window.innerWidth <= 768) {
+        menuOpen = false;
+        controlsEl.classList.remove('open');
+        menuBtn.textContent = '☰';
+      }
     }
 
     document.getElementById('close-panel').addEventListener('click', () => {
@@ -627,18 +769,25 @@
       controls.autoRotate = true;
     });
 
-    renderer.domElement.addEventListener('click', (event) => {
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    function onPointer(event) {
+      const x = event.clientX ?? (event.touches && event.touches[0].clientX);
+      const y = event.clientY ?? (event.touches && event.touches[0].clientY);
+      if (x == null) return;
+      mouse.x = (x / window.innerWidth) * 2 - 1;
+      mouse.y = -(y / window.innerHeight) * 2 + 1;
       raycaster.setFromCamera(mouse, camera);
       const hits = raycaster.intersectObjects(markerMeshes);
       if (hits.length > 0) {
         const data = hits[0].object.userData;
         showCountry(data.country, data.category);
       }
-    });
+    }
+    renderer.domElement.addEventListener('click', onPointer);
+    renderer.domElement.addEventListener('touchend', (e) => {
+      // Solo si fue un toque corto (no arrastre)
+      if (e.changedTouches.length === 1) onPointer(e);
+    }, { passive: true });
 
-    // Botones de categoría
     document.querySelectorAll('.category-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
@@ -650,28 +799,25 @@
       });
     });
 
-    // Resize
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // Animación
     function animate() {
       requestAnimationFrame(animate);
       controls.update();
+      // Ajustar opacidad de estrellas según tema
+      starsMat.opacity = document.body.classList.contains('light') ? 0.25 : 0.8;
       renderer.render(scene, camera);
     }
     animate();
 
-    // Ocultar loading
     setTimeout(() => {
       document.getElementById('loading').classList.add('hidden');
-      setTimeout(() => {
-        document.getElementById('hint').style.opacity = '0';
-      }, 5000);
-    }, 800);
+      setTimeout(() => { document.getElementById('hint').style.opacity = '0'; }, 4500);
+    }, 700);
   </script>
 </body>
 </html>
